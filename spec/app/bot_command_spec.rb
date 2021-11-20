@@ -39,6 +39,7 @@ describe Ally::BotCommand do
     let!(:alliance_class) { class_double("Ally::Alliance").
       as_stubbed_const(transfer_nested_constants: true) }
     let!(:aabot) { instance_double("Ally::Alliance") }
+    let!(:ally_8) { instance_double("Ally::Alliance") }
     let!(:tva) { instance_double("Ally::Alliance") }
 
     before(:each) do
@@ -264,10 +265,10 @@ describe Ally::BotCommand do
       VCR.use_cassette("cloudinary-MAP-8") do
         # Disable ENV config for Cloudinary
         ENV['CLOUDINARY_AUTH_JSON'] = nil
-        expect{ Ally::BotCommand.new(command: 'map8', opts: ['v1', 'bG2', 'AABOT']).excelsior! }
+        expect{ Ally::BotCommand.new(command: 'map8', opts: ['v1', 'bG2', 'MAP-8']).excelsior! }
           .to_not raise_error
-        expect( Ally::BotCommand.new(command: 'map8', opts: ['v1', 'bG2', 'AABOT']).excelsior! )
-#          .to include({:altText => "Map 7", :template => {:columns => [{:action => {:label => "T1", :type => "uri", :uri => "https://res.cloudinary.com/alliance-ally/image/upload/v1631573181/alliances/AABOT/AABOT-v1-bg2_t1.png"}, :imageUrl=>"https://res.cloudinary.com/alliance-ally/image/upload/v1631573181/alliances/AABOT/AABOT-v1-bg2_t1.png"}, {:action=>{:label=>"T2", :type=>"uri", :uri=>"https://res.cloudinary.com/alliance-ally/image/upload/v1631573274/alliances/AABOT/AABOT-v1-bg2_t2.png"}, :imageUrl=>"https://res.cloudinary.com/alliance-ally/image/upload/v1631573274/alliances/AABOT/AABOT-v1-bg2_t2.png"}, {:action=>{:label=>"T3", :type=>"uri", :uri=>"https://res.cloudinary.com/alliance-ally/image/upload/v1631573328/alliances/AABOT/AABOT-v1-bg2_t3.png"}, :imageUrl=>"https://res.cloudinary.com/alliance-ally/image/upload/v1631573328/alliances/AABOT/AABOT-v1-bg2_t3.png"}], :type=>"image_carousel"}, :type => "template"})
+        expect( Ally::BotCommand.new(command: 'map8', opts: ['v1', 'bG2', 'MAP-8']).excelsior! )
+#          .to include({:altText => "Map 8", :template => {:columns => [{:action => {:label => "T1", :type => "uri", :uri => "https://res.cloudinary.com/alliance-ally/image/upload/v1631573181/alliances/MAP-8/MAP-8-v1-bg2_t1.png"}, :imageUrl=>"https://res.cloudinary.com/alliance-ally/image/upload/v1631573181/alliances/MAP-8/MAP-8-v1-bg2_t1.png"}, {:action=>{:label=>"T2", :type=>"uri", :uri=>"https://res.cloudinary.com/alliance-ally/image/upload/v1631573274/alliances/MAP-8/MAP-8-v1-bg2_t2.png"}, :imageUrl=>"https://res.cloudinary.com/alliance-ally/image/upload/v1631573274/alliances/MAP-8/MAP-8-v1-bg2_t2.png"}, {:action=>{:label=>"T3", :type=>"uri", :uri=>"https://res.cloudinary.com/alliance-ally/image/upload/v1631573328/alliances/MAP-8/MAP-8-v1-bg2_t3.png"}, :imageUrl=>"https://res.cloudinary.com/alliance-ally/image/upload/v1631573328/alliances/MAP-8/MAP-8-v1-bg2_t3.png"}], :type=>"image_carousel"}, :type => "template"})
       end
     end
 
