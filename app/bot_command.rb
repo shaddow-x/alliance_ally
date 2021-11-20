@@ -449,7 +449,7 @@ https://github.com/shaddow-x/alliance_ally"]
         tmp_map = Tempfile.new("#{image_str_id}.png")
         begin
           output_file = tmp_map.path
-          go_cmd = "bin/mcoc_alliance_ally_friend-#{RUBY_PLATFORM} -i #{input_file} -o #{output_file} #{data_str}"
+          go_cmd = "bin/mcoc_alliance_ally_friend-#{RUBY_PLATFORM} -s 36 -i #{input_file} -o #{output_file} #{data_str}"
           Ally.logger.info("Invoking Go command: #{go_cmd}")
           system go_cmd
 
