@@ -397,5 +397,130 @@ https://github.com/shaddow-x/alliance_ally"]
       ]
     end
 
+
+    def map8
+      # Expects the variant as the FIRST option,
+      raise InvalidParams, "<map_variant#> (v1, v2, etc) is required" if @opts.nil? || @opts[0].nil?
+      # the BG as the SECOND option,
+      raise InvalidParams, "<battlegroup#> (bg1, BG2, etc) is required" if @opts[1].nil?
+      # and the alliance tag as the LAST option
+      raise InvalidParams, "<alliance_tag> is required" if @opts[2].nil?
+
+      # `!ally map8 v2 bg1 AABOT`
+      alliance = Alliance.new(tag: @opts.pop)
+      variant, bg = @opts.join(' ').match(%r{.*(\d).*(\d)}).captures
+      # Init Cloudinary wrapper
+      cloudinary = Ally::CloudinaryClient.new
+
+      all_assignments = {}
+      for tier in 1..3 do
+        all_assignments[tier.to_s] = alliance.get_path_assignments(variant: variant, bg: bg, tier: tier)
+      end
+
+      # Format for map data generation
+      map_data = all_assignments.map do |tier, assignments|
+        [
+          tier,
+          assignments.map do |assignment|
+            path = assignment.first.to_s.to_i - 1
+            name = assignment.last
+            [
+              name,
+              Ally::MetaMap.cat(8, tier.to_i)[path]
+            ]
+          end.to_h
+        ]
+      end.to_h
+
+      Ally.logger.debug("Alliance family: #{alliance.family}")
+      #input_file = "assets/maps/map_7/rondar/_v1/t1.png"
+      #input_file = "assets/maps/map_7/rondar/<family_tag>/_v1/t1.png"
+      image_urls = map_data.map do |tier, data|
+        #if alliance.family.nil? || alliance.family.empty?
+          input_file = "assets/maps/map_8/cat_murdock/_v#{variant}/t#{tier}.png"
+        #else
+        #  input_file = "assets/maps/map_8/cat_murdock/#{alliance.family}/_v#{variant}/t#{tier}.png"
+        #end
+        Ally.logger.debug("input_file: #{input_file}")
+        image_str_id = "#{alliance.tag}-v#{variant}-bg#{bg}_t#{tier}"
+        data_str = data.map{|name, coords| "'#{name}' #{coords[0]} #{coords[1]}"}.zip.flatten.join(' ')
+        # Create a temporary map file to output to
+        #tmp_map = Tempfile.new("#{image_str_id}.png", "/tmp")
+        tmp_map = Tempfile.new("#{image_str_id}.png")
+        begin
+          output_file = tmp_map.path
+          go_cmd = "bin/mcoc_alliance_ally_friend-#{RUBY_PLATFORM} -s 36 -i #{input_file} -o #{output_file} #{data_str}"
+          Ally.logger.info("Invoking Go command: #{go_cmd}")
+          system go_cmd
+
+          # Upload the temporary image to cloudinary & overwrite any existing image
+          # Return the url param of the returned hash
+          upload = Cloudinary::Uploader.upload(
+            "#{tmp_map.path}",
+            options = {
+              folder: "alliances/#{alliance.tag}/",
+              public_id: "#{image_str_id}",
+              overwrite: true,
+              resource_type: "image",
+              api_key: cloudinary.auth[:api_key],
+              api_secret: cloudinary.auth[:api_secret],
+              cloud_name: cloudinary.auth[:cloud_name]
+            }
+          )
+          Ally.logger.debug("Cloudinary response: #{upload}")
+          # Return the uploaded file's URL
+          upload["secure_url"]
+        ensure
+          tmp_map.close
+          tmp_map.unlink
+        end
+
+        # Copy/pasta debugging CLI for bin execution
+        # "bin/mcoc_alliance_ally_friend-#{RUBY_PLATFORM} -i #{input_file} -o #{image_str_id}.png #{data_str}"
+
+        # Return the image_url from Cloudinary using it's public_id
+        #"http://res.cloudinary.com/#{cloudinary.auth[:cloud_name]}/image/upload/alliances/#{alliance.tag}/#{image_str_id}.png"
+      end
+      Ally.logger.debug("image_urls: #{image_urls}")
+
+      carousel_hash = {
+        type: 'template',
+        altText: 'Map 8',
+        template: {
+          type: 'image_carousel',
+          columns: [
+            {
+              imageUrl: "#{image_urls[0]}",
+              action: {
+                type: 'uri',
+                label: 'T1',
+                uri: "#{image_urls[0]}"
+              }
+            },
+            {
+              imageUrl: "#{image_urls[1]}",
+              action: {
+                type: 'uri',
+                label: 'T2',
+                uri: "#{image_urls[1]}"
+              }
+            },
+            {
+              imageUrl: "#{image_urls[2]}",
+              action: {
+               type: 'uri',
+               label: 'T3',
+               uri: "#{image_urls[2]}"
+             }
+            }
+          ]
+        }
+      }
+
+      Ally.logger.debug("Returning carousel_hash: #{carousel_hash}")
+      ['maps', carousel_hash]
+    end
+
+
   end
 end
